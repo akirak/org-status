@@ -88,8 +88,8 @@ The window may be recentered depending on the value of
                  (const :tag "Make it the only window in the frame" only-window)
                  (const :tag "Multiple columns" multi-column)))
 
-(defcustom org-status-recenter 'first-headline
-  "How to recenter the status buffer."
+(defcustom org-status-position 'first-headline
+  "Position to jump to after updating the buffer."
   :group 'org-status
   :type '(choice (const "Make the first header" first-headline)
                  (const "Show the beginning" beginning)
@@ -196,7 +196,20 @@ The content is configured in `org-status-header'."
                              "\n")
                      (when (and tag (> (point) (1+ beg)))
                        (goto-char beg)
-                       (org-toggle-tag tag))))))))
+                       (org-toggle-tag tag))))))
+    (org-status--reposition)))
+
+(defun org-status--reposition ()
+  "Move to a designated position after updating.
+
+The position is specified by `org-status-recenter'."
+  (cl-case org-status-position
+    ('first-headline
+     (goto-char (point-min))
+     (re-search-forward (rx bol "*" space) nil t)
+     (beginning-of-line))
+    (t
+     (goto-char (point-min)))))
 
 ;;;###autoload
 (define-minor-mode org-status-startup-mode
@@ -244,15 +257,7 @@ The content is configured in `org-status-header'."
                       (split-window-horizontally))
                     (balance-windows)
                     (add-hook 'window-configuration-change-hook 'org-status--oneshot))))
-  (cl-case org-status-recenter
-    ('beginning
-     (goto-char (point-min))
-     (recenter 0))
-    ('first-headline
-     (goto-char (point-min))
-     (re-search-forward (rx bol "*" space) nil t)
-     (beginning-of-line)
-     (recenter 0))))
+  (recenter 0))
 
 (defun org-status--oneshot (&rest _)
   "Delete the other windows and delete itself from
