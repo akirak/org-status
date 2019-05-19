@@ -119,8 +119,12 @@ The window may be recentered depending on the value of
 
 This is a function used as `initial-buffer-choice' when
 `org-status-startup-mode' is on."
-  (or (get-buffer org-status-buffer)
-      (org-status--initialize-buffer :empty t)))
+  (if after-init-time
+      ;; Initial buffer after Emacs initialization, e.g. emacsclient
+      (with-current-buffer (org-status-get-buffer)
+        (org-status--update)
+        (current-buffer))
+    (org-status--initialize-buffer :empty t)))
 
 (cl-defun org-status--initialize-buffer (&key empty)
   "Return a new buffer for displaying statuses."
