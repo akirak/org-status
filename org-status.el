@@ -113,6 +113,15 @@ The window may be recentered depending on the value of
   (or (get-buffer org-status-buffer)
       (org-status--initialize-buffer)))
 
+;;;###autoload
+(defun org-status-initial-buffer ()
+  "Return a possibly empty status buffer.
+
+This is a function used as `initial-buffer-choice' when
+`org-status-startup-mode' is on."
+  (or (get-buffer org-status-buffer)
+      (org-status--initialize-buffer :empty t)))
+
 (cl-defun org-status--initialize-buffer (&key empty)
   "Return a new buffer for displaying statuses."
   (with-current-buffer (get-buffer-create org-status-buffer)
@@ -195,7 +204,7 @@ The content is configured in `org-status-header'."
   nil nil nil
   :global t
   (when org-status-startup-mode
-    (setq initial-buffer-choice (org-status--initialize-buffer :empty t))
+    (setq initial-buffer-choice #'org-status-initial-buffer)
     (add-hook 'emacs-startup-hook #'org-status--startup)))
 
 ;;;; Display
