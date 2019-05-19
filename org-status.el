@@ -182,6 +182,8 @@ The content is configured in `org-status-header'."
                      (when (and tag (> (point) (1+ beg)))
                        (goto-char beg)
                        (org-toggle-tag tag))))))
+    (when (re-search-forward (rx (group (+ space) buffer-end)) nil t)
+      (delete-region (match-beginning 1) (match-end 1)))
     (org-status--reposition)))
 
 (defun org-status--reposition ()
