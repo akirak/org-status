@@ -128,8 +128,7 @@ This is a function used as `initial-buffer-choice' when
     (org-mode)
     (use-local-map org-status-mode-map)
     (unless empty
-      (let ((inhibit-read-only t))
-        (org-status--insert-header)))
+      (org-status--insert-header))
     (when (eq org-status-display 'multi-column)
       (follow-mode 1))
     (read-only-mode t)
@@ -139,12 +138,13 @@ This is a function used as `initial-buffer-choice' when
   "Insert the header into the current buffer.
 
 The content is configured in `org-status-header'."
-  (cl-etypecase org-status-header
-    (string (insert org-status-header))
-    (function (insert (condition-case-unless-debug err
-                          (funcall org-status-header)
-                        (err (format "Error while running `org-status-header': %s" err)))))
-    (null nil)))
+  (let ((inhibit-read-only t))
+    (cl-etypecase org-status-header
+      (string (insert org-status-header))
+      (function (insert (condition-case-unless-debug err
+                            (funcall org-status-header)
+                          (err (format "Error while running `org-status-header': %s" err)))))
+      (null nil))))
 
 (defun org-status--startup ()
   "Initialize the content of the status buffer after a given idle time."
