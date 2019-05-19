@@ -69,11 +69,6 @@ Each item is a list that consists of the following data:
   :type '(repeat (list (string :tag "Org tag to identity the section")
                        (function :tag "Function generating the content"))))
 
-(defcustom org-status-startup-idle 3
-  "Idle time until after startup you use `org-status-startup-mode'."
-  :group 'org-status
-  :type 'integer)
-
 (defcustom org-status-display 'multi-column
   "How to display the status buffer.
 
@@ -107,6 +102,8 @@ The window may be recentered depending on the value of
 
 (defvar org-status-previous-window-configuration nil)
 
+(defvar org-status-original-initial-buffer-choice nil)
+
 ;;;###autoload
 (defun org-status-get-buffer ()
   "Return the status buffer."
@@ -115,16 +112,10 @@ The window may be recentered depending on the value of
 
 ;;;###autoload
 (defun org-status-as-initial-buffer ()
-  "Return a possibly empty status buffer.
-
-This is a function used as `initial-buffer-choice' when
-`org-status-startup-mode' is on."
-  (if after-init-time
-      ;; Initial buffer after Emacs initialization, e.g. emacsclient
-      (with-current-buffer (org-status-get-buffer)
-        (org-status--update)
-        (current-buffer))
-    (org-status--initialize-buffer :empty t)))
+  "Return the status buffer for `initial-buffer-choice'."
+  (with-current-buffer (org-status-get-buffer)
+    (org-status--update)
+    (current-buffer)))
 
 (cl-defun org-status--initialize-buffer (&key empty)
   "Return a new buffer for displaying statuses."
@@ -149,16 +140,6 @@ The content is configured in `org-status-header'."
                             (funcall org-status-header)
                           (err (format "Error while running `org-status-header': %s" err)))))
       (null nil))))
-
-(defun org-status--startup ()
-  "Initialize the content of the status buffer after a given idle time."
-  (run-with-timer
-   org-status-startup-idle
-   nil
-   (lambda ()
-     (with-current-buffer org-status-buffer
-       (org-status--insert-header)
-       (org-status--update)))))
 
 (defun org-status--heading-with-tag-regexp (tag)
   "Return a regular expression for an Org heading with TAG."
@@ -216,13 +197,16 @@ The position is specified by `org-status-recenter'."
      (goto-char (point-min)))))
 
 ;;;###autoload
-(define-minor-mode org-status-startup-mode
+(define-minor-mode org-status-initial-buffer-mode
   "Global minor mode which makes the status buffer the initial buffer of Emacs."
   nil nil nil
   :global t
-  (when org-status-startup-mode
-    (setq initial-buffer-choice #'org-status-as-initial-buffer)
-    (add-hook 'emacs-startup-hook #'org-status--startup)))
+  (cond
+   (org-status-initial-buffer-mode
+    (setq org-status-original-initial-buffer-choice initial-buffer-choice)
+    (setq initial-buffer-choice #'org-status-as-initial-buffer))
+   (t
+    (setq initial-buffer-choice org-status-original-initial-buffer-choice))))
 
 ;;;; Display
 
