@@ -95,6 +95,14 @@ The window may be recentered depending on the value of
   :group 'org-status
   :type 'integer)
 
+(defcustom org-status-default-directory nil
+  "Set `default-directory' in the status buffer.
+
+If this variable is set to non-nil, `default-directory' in the status buffer
+is set to the value."
+  :group 'org-status
+  :type '(or (const nil) (string :tag "Directory")))
+
 (defvar org-status-mode-map
   (let ((map (make-composed-keymap nil org-mode-map)))
     (define-key map "q" #'org-status-quit-window)
@@ -121,6 +129,8 @@ The window may be recentered depending on the value of
   "Return a new buffer for displaying statuses."
   (with-current-buffer (get-buffer-create org-status-buffer)
     (org-mode)
+    (when org-status-default-directory
+      (setq default-directory org-status-default-directory))
     (use-local-map org-status-mode-map)
     (unless empty
       (org-status--insert-header))
