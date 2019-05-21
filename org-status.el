@@ -147,9 +147,16 @@ The content is configured in `org-status-header'."
     (cl-etypecase org-status-header
       (string (insert org-status-header))
       (function (insert (condition-case-unless-debug err
-                            (funcall org-status-header)
+                            (org-status--append-newline
+                             (funcall org-status-header))
                           (err (format "Error while running `org-status-header': %s" err)))))
       (null nil))))
+
+(defun org-status--append-newline (s)
+  "Append a newline to S if it does not end with one."
+  (if (string-suffix-p "\n" s)
+      s
+    (concat s "\n")))
 
 (defun org-status--heading-with-tag-regexp (tag)
   "Return a regular expression for an Org heading with TAG."
